@@ -3,20 +3,69 @@ version: '3.8'
 services:
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
-    container_name: microservices_rabbitmq
+    container_name: production_rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_production_data:/var/lib/rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: prod_user
+      RABBITMQ_DEFAULT_PASS: complex_prod_password
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - microservice_network
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: production_api_gateway
+    ports:
+      - "3000:3000" # Exposes only the gateway to the internet
+    environment:
+      PORT: 3000
+      RABBITMQ_URL: amqp://prod_user:complex_prod_password@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservice_network
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: production_order_service
+    # NOTE: No public ports exposed! Securely isolated.
+    environment:
+      RABBITMQ_URL: amqp://prod_user:complex_prod_password@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservice_network
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: production_notification_service
+    environment:
+      RABBITMQ_URL: amqp://prod_user:complex_prod_password@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservice_network
 
 volumes:
-  rabbitmq_data:
+  rabbitmq_production_data:
+
+networks:
+  microservice_network:
+    driver: bridge
