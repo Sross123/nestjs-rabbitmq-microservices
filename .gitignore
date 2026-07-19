@@ -1,11 +1,10 @@
 # Node modules
 node_modules/
-api-gateway/node_modules/
-order-service/node_modules/
+**/node_modules/
 
 # Build output
-api-gateway/dist/
-order-service/dist/
+dist/
+**/dist/
 coverage/
 
 # Environment files

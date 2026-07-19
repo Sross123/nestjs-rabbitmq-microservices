@@ -41,6 +41,27 @@ import Joi from 'joi';
         },
         inject: [ConfigService],
       },
+      {
+        name: 'NOTIFICATION_SERVICE',
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => {
+          const rabbitUrl = configService.get<string>('RABBITMQ_URL');
+
+          if (!rabbitUrl) {
+            throw new Error('RABBITMQ_URL is required');
+          }
+
+          return {
+            transport: Transport.RMQ,
+            options: {
+              urls: [rabbitUrl],
+              queue: 'notifications_queue', // Direct communication channel
+              queueOptions: { durable: true },
+            },
+          };
+        },
+        inject: [ConfigService],
+      },
     ]),
   ],
   controllers: [AppController],
