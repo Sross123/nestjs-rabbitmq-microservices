@@ -1,17 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 
 @Injectable()
-export class AppService {
-  private readonly logger = new Logger("OrderService");
+export class AppService implements OnApplicationShutdown {
+  private readonly logger = new Logger('OrderService');
 
-  createOrder(data: any){
-    this.logger.log(`Processing order: ${JSON.stringify(data)}`)
-
-    // In a real app, this is where you'd inject Prisma to save to DB
+  createOrder(data: any) {
+    this.logger.log(`Processing order: ${JSON.stringify(data)}`);
     return {
       success: true,
-      orderId: Math.floor(Math.random()*1000), //mock ID
-      message: "Order proccess successfully"
-    }
+      orderId: Math.floor(Math.random() * 1000),
+      message: 'Order processed successfully',
+    };
+  }
+
+  // This hook runs automatically when the application receives a shutdown signal
+  onApplicationShutdown(signal: string) {
+    this.logger.warn(`Received signal: ${signal}. Safely disconnecting channels and releasing resources...`);
   }
 }
