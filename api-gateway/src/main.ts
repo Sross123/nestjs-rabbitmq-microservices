@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { TransformInterceptor } from './interceptors/transform.interceptor';
 
 async function bootstrap() {
   // Initialize standard NestJS logger bound to the Gateway context
@@ -20,6 +21,9 @@ async function bootstrap() {
       transform: true,        // Automatically transforms incoming plain payloads into DTO instances
     }),
   );
+
+  // Bind the new global response formatter here
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   const port = process.env.PORT || 3000;
 
