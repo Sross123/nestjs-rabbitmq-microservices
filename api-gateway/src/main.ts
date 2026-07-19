@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
+import { RpcExceptionFilter } from './filters/rpc-exception.filter';
 
 async function bootstrap() {
   // Initialize standard NestJS logger bound to the Gateway context
@@ -24,6 +25,9 @@ async function bootstrap() {
 
   // Bind the new global response formatter here
   app.useGlobalInterceptors(new TransformInterceptor());
+
+  // Bind the error translator here
+  app.useGlobalFilters(new RpcExceptionFilter());
 
   const port = process.env.PORT || 3000;
 
