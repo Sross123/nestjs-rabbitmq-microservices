@@ -20,6 +20,11 @@ export class AppController {
     const channel = context.getChannelRef(); // The active AMQP channel
     const originalMessage = context.getMessage(); // The underlying raw AMQP packet
     try {
+      // Intentionally simulate a database crash or server failure for testing
+      if(data?.product == "broken"){
+        throw new Error("Database connection lost!")
+      }
+
       // 1. Process your core business logic
       const result = await this.appService.createOrder(data);
 
@@ -34,7 +39,6 @@ export class AppController {
       // 3. FAILURE: Negative Acknowledge (NACK).
       // Params: (message, allUpTo, requeue) -> setting true puts it back in line
       channel.nack(originalMessage, false, false);
-      throw error;
     }
   }
 

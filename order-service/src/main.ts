@@ -11,7 +11,6 @@ async function bootstrap() {
   const appContext = await NestFactory.createApplicationContext(AppModule);
   const configService = appContext.get(ConfigService);
   const rabbitMqUrl = configService.get<string>('RABBITMQ_URL');
-  
 
   if (!rabbitMqUrl) {
     throw new Error('RABBITMQ_URL is required');
@@ -28,6 +27,10 @@ async function bootstrap() {
         noAck: false,
         queueOptions: {
           durable: true,
+          // If a message is rejected (NACKed), send it to the default exchange
+          'x-dead-letter-exchange': '',
+          // And route it specifically into this fallback queue name
+          'x-dead-letter-routing-key': 'orders_queue_dlq',
         },
       },
     },
