@@ -16,7 +16,7 @@ async function bootstrap() {
         urls: ['amqp://guest:guest@localhost:5672'],
 
         // The specific queue this service will pull tasks from
-        queue: 'orders_queue', //queue name
+        queue: 'order_queue', //queue name
         // queueOptions setup ensures the queue survives a RabbitMQ crash/restart
         queueOptions: {
           durable: true,

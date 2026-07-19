@@ -1,3 +1,8 @@
 export declare class AppService {
-    getHello(): string;
+    private readonly logger;
+    createOrder(data: any): {
+        success: boolean;
+        orderId: number;
+        message: string;
+    };
 }

@@ -10,7 +10,7 @@ async function bootstrap() {
         transport: microservices_1.Transport.RMQ,
         options: {
             urls: ['amqp://guest:guest@localhost:5672'],
-            queue: 'orders_queue',
+            queue: 'order_queue',
             queueOptions: {
                 durable: true,
             },
