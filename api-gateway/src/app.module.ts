@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import Joi from 'joi';
+import { LoggingMiddleware } from './middleware/logging.middleware';
 
 @Module({
   imports: [
@@ -67,4 +68,9 @@ import Joi from 'joi';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Update '*' to '*path' to satisfy the latest path-to-regexp layout
+    consumer.apply(LoggingMiddleware).forRoutes('*path');
+  }
+}
