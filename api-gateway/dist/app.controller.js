@@ -22,7 +22,12 @@ let AppController = class AppController {
         this.orderClient = orderClient;
     }
     createOrder(orderData) {
-        return this.orderClient.send({ cmd: 'create_order' }, orderData);
+        return this.orderClient.send({ cmd: 'create_order' }, orderData).pipe((0, rxjs_1.tap)((response) => {
+            this.orderClient.emit('order_created', {
+                orderId: response.orderId,
+                timestamp: new Date(),
+            });
+        }));
     }
 };
 exports.AppController = AppController;

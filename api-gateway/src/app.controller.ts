@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ClientProxy } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 @Controller('orders')
 export class AppController {
@@ -15,6 +15,17 @@ export class AppController {
     // 'send' indicates Request-Response pattern.
     // Argument 1: The command/message pattern string.
     // Argument 2: The actual data payload.
-    return this.orderClient.send({ cmd: 'create_order' }, orderData);
+
+    // 1. We still use 'send' to process the synchronous core logic
+    return this.orderClient.send({ cmd: 'create_order' }, orderData).pipe(
+      tap((response) => {
+        // 2. Once the core logic succeeds, we trigger a fire-and-forget event
+        // Notice we use 'emit' instead of 'send'
+        this.orderClient.emit('order_created', {
+          orderId: response.orderId,
+          timestamp: new Date(),
+        });
+      }),
+    );
   }
 }
