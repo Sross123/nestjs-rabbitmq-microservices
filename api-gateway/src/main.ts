@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   // Initialize standard NestJS logger bound to the Gateway context
@@ -11,6 +11,15 @@ async function bootstrap() {
 
   // Global prefix helps with routing rules behind load balancers (e.g., Nginx)
   app.setGlobalPrefix("api")
+
+  // Enforce strict runtime typing and validation on all routes
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,        // Strips away any properties not explicitly defined in the DTO
+      forbidNonWhitelisted: true, // Throws an error if unknown properties are passed
+      transform: true,        // Automatically transforms incoming plain payloads into DTO instances
+    }),
+  );
 
   const port = process.env.PORT || 3000;
 

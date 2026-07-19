@@ -2,6 +2,7 @@ import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { Observable, tap } from 'rxjs';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @Controller('orders')
 export class AppController {
@@ -11,7 +12,7 @@ export class AppController {
   ) {}
 
   @Post()
-  createOrder(@Body() orderData: any): Observable<any> {
+  createOrder(@Body() orderData: CreateOrderDto): Observable<any> {
     // 'send' indicates Request-Response pattern.
     // Argument 1: The command/message pattern string.
     // Argument 2: The actual data payload.
