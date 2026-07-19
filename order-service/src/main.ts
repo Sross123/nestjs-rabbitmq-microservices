@@ -1,23 +1,31 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const logger = new Logger('OrderService');
 
-  // Create a NestJS Microservice instance instead of a classic HTTP Web App
+  // Create a temporary reference application instance to inspect the IoC container
+  const appContext = await NestFactory.createApplicationContext(AppModule);
+  const configService = appContext.get(ConfigService);
+  const rabbitMqUrl = configService.get<string>('RABBITMQ_URL');
+  
+
+  if (!rabbitMqUrl) {
+    throw new Error('RABBITMQ_URL is required');
+  }
+
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
-      transport: Transport.RMQ, // Use RabbitMQ transport layer
+      transport: Transport.RMQ,
       options: {
-        // The AMQP connection URI pointing to our Docker container
-        urls: ['amqp://guest:guest@localhost:5672'],
-
-        // The specific queue this service will pull tasks from
-        queue: 'order_queue', //queue name
-        // queueOptions setup ensures the queue survives a RabbitMQ crash/restart
+        urls: [rabbitMqUrl],
+        queue: 'order_queue',
+        // CRITICAL: Disables automatic ACK. We now control the message lifecycle manually.
+        noAck: false,
         queueOptions: {
           durable: true,
         },
@@ -25,8 +33,11 @@ async function bootstrap() {
     },
   );
 
+  // Close the standalone configuration context to prevent memory leaks
+  await appContext.close();
+
   await app.listen();
-  logger.log('📦 Order Microservice is connected to RabbitMQ and listening...');
+  logger.log('📦 Order Microservice is configured cleanly and listening...');
 }
 
 bootstrap();
